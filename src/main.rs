@@ -1,10 +1,162 @@
 use std::{
     fmt::{self},
+    mem::{self},
+    slice::Windows,
     vec,
 };
 
 fn main() {
-    primitives();
+    enums();
+}
+
+fn structures() {
+    #[derive(Debug)]
+    struct Person {
+        name: String,
+        age: u8,
+    }
+
+    struct Unit;
+
+    struct Pair(i32, f32);
+
+    #[derive(Debug)]
+    struct Point {
+        x: f32,
+        y: f32,
+    }
+
+    #[derive(Debug)]
+    struct Rectangle {
+        top_left: Point,
+        bottom_right: Point,
+    }
+
+    let name = String::from("Peter");
+    let age = 27;
+    let peter = Person { name, age };
+
+    println!("{:?}", peter);
+
+    let point: Point = Point { x: 10.3, y: 0.4 };
+
+    println!("point coordinates: ({} {})", point.x, point.y);
+
+    let bottom_right = Point { x: 5.2, ..point };
+
+    println!("second point: {} {}", bottom_right.x, bottom_right.y);
+
+    let Point {
+        x: left_edge,
+        y: top_edge,
+    } = point;
+
+    let rectangle = Rectangle {
+        top_left: Point {
+            x: left_edge,
+            y: top_edge,
+        },
+        bottom_right,
+    };
+
+    let _unit = Unit;
+
+    let pair = Pair(1, 0.1);
+
+    let Pair(integer, decimal) = pair;
+
+    println!("pair contains {:?} and {:?}", integer, decimal);
+
+    println!(
+        "area of rectangle {}",
+        rect_area(Rectangle {
+            top_left: Point { x: 1.1, y: 19.3 },
+            bottom_right: Point { x: 5.5, y: 8.0 },
+        })
+    );
+
+    println!(
+        "square: {:?}",
+        square(
+            Point {
+                x: 32.3298,
+                y: 728.3276
+            },
+            32.3
+        )
+    );
+
+    fn rect_area(rectangle: Rectangle) -> f32 {
+        // nested destructuring!
+        let Rectangle {
+            top_left: Point { x: x1, y: y1 },
+            bottom_right: Point { x: x2, y: y2 },
+        } = rectangle;
+        (x2 - x1) * (y1 - y2)
+    }
+
+    fn square(point: Point, width: f32) -> Rectangle {
+        let Point { x, y } = point;
+        Rectangle {
+            top_left: point,
+            bottom_right: Point {
+                x: x + width,
+                y: y - width,
+            },
+        }
+    }
+}
+
+fn enums() {
+    enum WebEvent {
+        PageLoad,
+        PageUnload,
+        KeyPress(char),
+        Paste(String),
+        Click { x: i64, y: i64 },
+    }
+
+    fn inspect(event: WebEvent) {
+        match event {
+            WebEvent::PageLoad => println!("page loaded"),
+            WebEvent::PageUnload => println!("page unloaded"),
+            WebEvent::KeyPress(char) => println!("pressed '{}'", char),
+            WebEvent::Paste(str) => println!("pasted \"{}\"", str),
+            WebEvent::Click { x, y } => println!("clicked at x={}, y={}", x, y),
+        }
+    }
+
+    let pressed = WebEvent::KeyPress('x');
+    let pasted = WebEvent::Paste("my text".to_owned());
+    let click = WebEvent::Click { x: 20, y: 80 };
+    let load = WebEvent::PageLoad;
+    let unload = WebEvent::PageUnload;
+
+    inspect(pressed);
+    inspect(pasted);
+    inspect(click);
+    inspect(load);
+    inspect(unload);
+
+    enum VeryVerboseEnumOfThingsToDoWithNumbers {
+        Add,
+        Subtract,
+    }
+
+    impl VeryVerboseEnumOfThingsToDoWithNumbers {
+        fn run(&self, x: i32, u: i32) -> i32 {
+            match self {
+                Self::Add => x + u,
+                Self::Subtract => x - u,
+            }
+        }
+    }
+
+    type Operations = VeryVerboseEnumOfThingsToDoWithNumbers;
+
+    let x = Operations::Add;
+
+    println!("{}", x.run(32, 53));
 }
 
 fn primitives() {
@@ -39,7 +191,41 @@ fn primitives() {
     println!("{:?}", matrix);
     println!("{}", matrix);
 
-    println!("{}", transpose(matrix))
+    println!("{}", transpose(matrix));
+
+    let xs: [i32; 5] = [1, 2, 3, 4, 5];
+
+    let ys: [i32; 500] = [0; 500];
+
+    println!("first element of the array: {}", xs[0]);
+    println!("second element of the array: {}", xs[1]);
+
+    println!("number of elements in the array: {}", xs.len());
+
+    println!("array occupies {} bytes", mem::size_of_val(&xs));
+
+    println!("borrow the whole array as a slice");
+    analyze_slice(&xs);
+
+    println!("borrow a section of the array as a slice");
+    analyze_slice(&ys[1..4]);
+
+    let empty_array: [u32; 0] = [];
+
+    assert_eq!(&empty_array, &[]);
+    assert_eq!(&empty_array, &[][..]);
+
+    for i in 0..xs.len() + 1 {
+        match xs.get(i) {
+            Some(xval) => println!("{}: {}", i, xval),
+            None => println!(),
+        }
+    }
+}
+
+fn analyze_slice(slice: &[i32]) {
+    println!("first element of the slice: {}", slice[0]);
+    println!("the slice has {} elements", slice.len())
 }
 
 fn reverse(pair: (i32, bool)) -> (bool, i32) {
