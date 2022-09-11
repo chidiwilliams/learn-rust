@@ -1,12 +1,46 @@
 use std::{
     fmt::{self},
     mem::{self},
-    slice::Windows,
     vec,
 };
 
 fn main() {
-    enums();
+    flow_of_control();
+}
+
+fn flow_of_control() {
+    let mut counter = 0;
+    let result = loop {
+        counter += 1;
+
+        if counter == 10 {
+            break counter * 2;
+        }
+    };
+
+    assert_eq!(result, 20);
+
+    let names = vec!["Bob", "Frank", "Ferris"];
+
+    for name in names.iter() {
+        match name {
+            &"Ferris" => println!("There is a rustacean among us!"),
+            _ => println!("Hello {}", name),
+        }
+    }
+
+    println!("names: {:?}", names);
+
+    let mut mut_names = vec!["Bob", "Frank", "Ferris"];
+
+    for name in mut_names.iter_mut() {
+        *name = match name {
+            &mut "Ferris" => "There is a rustacean among us!",
+            _ => "Hello",
+        }
+    }
+
+    println!("mut_names: {:?}", mut_names)
 }
 
 fn structures() {
@@ -157,7 +191,75 @@ fn enums() {
     let x = Operations::Add;
 
     println!("{}", x.run(32, 53));
+
+    enum Status {
+        Rich,
+        Poor,
+    }
+
+    enum Work {
+        Civilian,
+        Soldier,
+    }
+
+    use Status::{Poor, Rich};
+    use Work::*;
+
+    let status = Poor;
+    let work = Civilian;
+
+    match status {
+        Rich => println!("The rich have lots of money!"),
+        Poor => println!("The poor have no money..."),
+    }
+
+    match work {
+        Civilian => println!("Civilians work!"),
+        Soldier => println!("Soldiers fight!"),
+    }
+
+    enum List {
+        Cons(u32, Box<List>),
+        Nil,
+    }
+
+    impl List {
+        fn new() -> List {
+            List::Nil
+        }
+
+        fn prepend(self, elem: u32) -> List {
+            List::Cons(elem, Box::new(self))
+        }
+
+        fn len(&self) -> u32 {
+            match self {
+                List::Cons(_, tail) => 1 + tail.len(),
+                List::Nil => 0,
+            }
+        }
+
+        fn stringify(&self) -> String {
+            match self {
+                List::Cons(head, tail) => format!("{}, {}", head, tail.stringify()),
+                List::Nil => format!("Nil"),
+            }
+        }
+    }
+
+    let mut list = List::new();
+
+    list = list.prepend(1);
+    list = list.prepend(2);
+    list = list.prepend(3);
+
+    println!("linked list has length: {}", list.len());
+    println!("{}", list.stringify());
+
+    let h: Hello = 87;
 }
+
+type Hello = i64;
 
 fn primitives() {
     let logical: bool = true;
