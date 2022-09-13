@@ -1,4 +1,3 @@
-use core::lazy;
 use std::{fmt::Debug, fmt::Display};
 
 struct A;
